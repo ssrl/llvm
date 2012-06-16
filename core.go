@@ -1,11 +1,19 @@
 package llvm
 
+/**
+  LLVM 3.1 Go Bindings
+  (c) 2012 Chanwit Kaewkasi / SUT
+  Inspired by on the Go-LLVM package of nsf
+**/
+
 /*
 #cgo CFLAGS: -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+#cgo LDFLAGS: -lLLVMCore
 #include <llvm-c/Core.h>
 #include <stdlib.h>
 */
 import "C"
+import "unsafe"
 
 type (
     Context         struct { C C.LLVMContextRef        }
@@ -141,3 +149,143 @@ const (
     Resume     = C.LLVMResume
     LandingPad = C.LLVMLandingPad
 )
+
+// LLVMTypeKind
+const (
+    VoidTypeKind      = C.LLVMVoidTypeKind
+    HalfTypeKind      = C.LLVMHalfTypeKind
+    FloatTypeKind     = C.LLVMFloatTypeKind
+    DoubleTypeKind    = C.LLVMDoubleTypeKind
+    X86_FP80TypeKind  = C.LLVMX86_FP80TypeKind
+    FP128TypeKind     = C.LLVMFP128TypeKind
+    PPC_FP128TypeKind = C.LLVMPPC_FP128TypeKind
+    LabelTypeKind     = C.LLVMLabelTypeKind
+    IntegerTypeKind   = C.LLVMIntegerTypeKind
+    FunctionTypeKind  = C.LLVMFunctionTypeKind
+    StructTypeKind    = C.LLVMStructTypeKind
+    ArrayTypeKind     = C.LLVMArrayTypeKind
+    PointerTypeKind   = C.LLVMPointerTypeKind
+    VectorTypeKind    = C.LLVMVectorTypeKind
+    MetadataTypeKind  = C.LLVMMetadataTypeKind
+    X86_MMXTypeKind   = C.LLVMX86_MMXTypeKind
+)
+
+// LLVMLinkage
+const (
+    ExternalLinkage            = C.LLVMExternalLinkage
+    AvailableExternallyLinkage = C.LLVMAvailableExternallyLinkage
+    LinkOnceAnyLinkage         = C.LLVMLinkOnceAnyLinkage
+    LinkOnceODRLinkage         = C.LLVMLinkOnceODRLinkage
+
+    WeakAnyLinkage   = C.LLVMWeakAnyLinkage
+    WeakODRLinkage   = C.LLVMWeakODRLinkage
+
+    AppendingLinkage = C.LLVMAppendingLinkage
+    InternalLinkage  = C.LLVMInternalLinkage
+
+    PrivateLinkage                  = C.LLVMPrivateLinkage
+    DLLImportLinkage                = C.LLVMDLLImportLinkage
+    DLLExportLinkage                = C.LLVMDLLExportLinkage
+    ExternalWeakLinkage             = C.LLVMExternalWeakLinkage
+    GhostLinkage                    = C.LLVMGhostLinkage
+    CommonLinkage                   = C.LLVMCommonLinkage
+    LinkerPrivateLinkage            = C.LLVMLinkerPrivateLinkage
+    LinkerPrivateWeakLinkage        = C.LLVMLinkerPrivateWeakLinkage
+    LinkerPrivateWeakDefAutoLinkage = C.LLVMLinkerPrivateWeakDefAutoLinkage
+)
+
+// LLVMVisibility
+const (
+    DefaultVisibility   = C.LLVMDefaultVisibility
+    HiddenVisibility    = C.LLVMHiddenVisibility
+    ProtectedVisibility = C.LLVMProtectedVisibility
+)
+
+// LLVMCallConv
+const (
+    CCallConv           = C.LLVMCCallConv
+    FastCallConv        = C.LLVMFastCallConv
+    ColdCallConv        = C.LLVMColdCallConv
+    X86StdcallCallConv  = C.LLVMX86StdcallCallConv
+    X86FastcallCallConv = C.LLVMX86FastcallCallConv
+)
+
+// LLVMIntPredicate
+const (
+    IntEQ  = C.LLVMIntEQ
+    IntNE  = C.LLVMIntNE
+    IntUGT = C.LLVMIntUGT
+    IntUGE = C.LLVMIntUGE
+    IntULT = C.LLVMIntULT
+    IntULE = C.LLVMIntULE
+    IntSGT = C.LLVMIntSGT
+    IntSGE = C.LLVMIntSGE
+    IntSLT = C.LLVMIntSLT
+    IntSLE = C.LLVMIntSLE
+)
+
+// LLVMRealPredicate
+const (
+    RealPredicateFalse  = C.LLVMRealPredicateFalse
+    RealOEQ             = C.LLVMRealOEQ
+    RealOGT             = C.LLVMRealOGT
+    RealOGE             = C.LLVMRealOGE
+    RealOLT             = C.LLVMRealOLT
+    RealOLE             = C.LLVMRealOLE
+    RealONE             = C.LLVMRealONE
+    RealORD             = C.LLVMRealORD
+    RealUNO             = C.LLVMRealUNO
+    RealUEQ             = C.LLVMRealUEQ
+    RealUGT             = C.LLVMRealUGT
+    RealUGE             = C.LLVMRealUGE
+    RealULT             = C.LLVMRealULT
+    RealULE             = C.LLVMRealULE
+    RealUNE             = C.LLVMRealUNE
+    RealPredicateTrue   = C.LLVMRealPredicateTrue
+)
+
+// LLVMLandingPadClauseTy
+const (
+    LLVMLandingPadCatch  = C.LLVMLandingPadCatch
+    LLVMLandingPadFilter = C.LLVMLandingPadFilter
+)
+
+
+
+func InitializeCore(registry PassRegistry) {
+    C.LLVMInitializeCore(registry.C)
+}
+
+//
+// Error Handling
+//
+
+func DisposeMessage(message string) {
+    cmessage := C.CString(message)
+    C.LLVMDisposeMessage(cmessage)
+    C.free(unsafe.Pointer(cmessage))
+}
+
+
+//
+// llvm.Context
+//
+
+func NewContext()       Context { return Context{C.LLVMContextCreate()}    }
+func GetGlobalContext() Context { return Context{C.LLVMGetGlobalContext()} }
+
+func (c Context) Dispose() { C.LLVMContextDispose(c.C) }
+
+func (c Context) GetMDKindIDInContext(name string) (id int) {
+    cname := C.CString(name)
+    id := C.LLVMGetMDKindIDInContext(c.C, cname, C.unsigned(len(name)))
+    C.free(unsafe.Pointer(cname))
+    return
+}
+
+func GetMDKindID(name string) (id int) {
+    cname := C.CString(name)
+    C.LLVMGetMDKindID(cname, C.unsigned(len(name)))
+    C.free(unsafe.Pointer(cname))
+    return
+}
