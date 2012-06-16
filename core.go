@@ -289,3 +289,47 @@ func GetMDKindID(name string) (id int) {
     C.free(unsafe.Pointer(cname))
     return
 }
+
+//
+// llvm.Module
+//
+
+func NewModule(name string) (m Module) {
+    cname := C.CString(name)
+    m := Module{C.LLVMModuleCreateWithName(cname)}
+    C.free(unsafe.Pointer(cname))
+    return
+}
+
+func NewModuleInContext(name string, context Context) (m Module) {
+    cname := C.CString(name)
+    m := Module{C.LLVMModuleCreateWithNameInContext(cname, context.C)}
+    C.free(unsafe.Pointer(cname))
+    return
+}
+
+func (m Module) Dispose() {
+    C.LLVMDisposeModule(m.C)
+}
+
+func (m Module) GetDataLayout() string {
+    cdataLayout := C.LLVMGetDataLayout(m.C)
+    return C.GoString(cdataLayout)
+}
+
+func (m Module) SetDataLayout(triple string) {
+    ctriple := C.CString(triple)
+    C.LLVMSetDataLayout(m.C, ctriple)
+    C.free(unsafe.Pointer(ctriple))
+}
+
+func (m Module) GetTargetTriple() string {
+    ctargetTriple := C.LLVMGetTarget(m.C)
+    return C.GoString(ctargetTriple)
+}
+
+func (m Module) SetTargetTriple(triple string) {
+    ctriple := C.CString(triple)
+    C.LLVMSetTarget(m.C, ctriple)
+    C.free(unsafe.Pointer(ctriple))
+}
